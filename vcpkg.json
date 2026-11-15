@@ -1,0 +1,14 @@
+{
+  "name": "water-caustics-rendering",
+  "version": "0.1.0",
+  "dependencies": [
+    {
+      "name": "glad",
+      "features": [
+        "gl-api-33"
+      ]
+    },
+    "glfw3",
+    "glm"
+  ]
+}
