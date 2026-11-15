@@ -1,1 +1,59 @@
 # WaterCausticsRendering
+
+Base de projet pour un rendu de caustiques aquatiques en temps reel avec C++ et OpenGL. Le developpement et la compilation sont prevus sous Linux ; aucun compilateur C++ n'est necessaire sur Windows pour preparer le depot.
+
+## Structure
+
+```text
+assets/                  Ressources (textures, modeles...)
+include/water_caustics/  Interfaces C++ du projet
+shaders/                 Shaders GLSL
+src/
+  main.cpp               Point d'entree et boucle de fenetrage
+  render/                Rendu et gestion OpenGL
+  simulation/            Simulation de l'eau et des caustiques
+tests/                   Tests (a ajouter avec les premiers modules)
+CMakeLists.txt           Configuration et cible de compilation
+vcpkg.json               Dependances C++ gerees par vcpkg
+```
+
+Les bibliotheques ne sont pas copiees dans le depot : vcpkg les telecharge et les construit sur la machine cible. CMake utilise la cible OpenGL portable `OpenGL::GL`, sans chemin de bibliotheque propre a Windows.
+
+## Prerequis Linux
+
+Exemple pour Ubuntu ou Debian :
+
+```bash
+sudo apt update
+sudo apt install build-essential cmake git pkg-config libgl1-mesa-dev xorg-dev
+```
+
+Installer ensuite vcpkg :
+
+```bash
+git clone https://github.com/microsoft/vcpkg.git ~/dev/vcpkg
+~/dev/vcpkg/bootstrap-vcpkg.sh
+export VCPKG_ROOT="$HOME/dev/vcpkg"
+```
+
+`export` ne s'applique qu'au terminal courant. Pour le conserver, ajouter cette variable a la configuration du shell ou utiliser le chemin complet vers `vcpkg.cmake`.
+
+## Configurer et compiler sous Linux
+
+Depuis la racine du depot :
+
+```bash
+cmake -S . -B build \
+  -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+  -DVCPKG_TARGET_TRIPLET=x64-linux
+cmake --build build --parallel
+./build/WaterCausticsRendering
+```
+
+La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. La fenetre de depart ouvre un contexte OpenGL 3.3 et affiche un fond sombre ; le rendu et la simulation restent a implementer.
+
+## Dependances
+
+- GLFW : fenetre, contexte OpenGL et entrees
+- GLAD : chargement des fonctions OpenGL 3.3
+- GLM : types et operations mathematiques pour le rendu 3D

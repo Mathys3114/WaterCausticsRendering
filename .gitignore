@@ -42,6 +42,7 @@
 build/
 Build/
 build-*/
+cmake-build-*/
 
 # CMake generated files
 CMakeFiles/
@@ -59,6 +60,10 @@ compile_commands.json
 
 # vcpkg
 vcpkg_installed/
+
+# IDE settings
+.vs/
+.idea/
 
 # debug information files
 *.dwo
