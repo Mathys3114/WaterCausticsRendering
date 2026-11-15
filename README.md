@@ -25,7 +25,7 @@ Exemple pour Ubuntu ou Debian :
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake git pkg-config libgl1-mesa-dev xorg-dev
+sudo apt install build-essential cmake git pkg-config libgl1-mesa-dev xorg-dev autoconf autoconf-archive automake libtool
 ```
 
 Installer ensuite vcpkg :
@@ -40,15 +40,17 @@ export VCPKG_ROOT="$HOME/dev/vcpkg"
 
 ## Configurer et compiler sous Linux
 
-Depuis la racine du depot :
+Depuis la racine du depot, configurez et compilez depuis un dossier de build :
 
 ```bash
-cmake -S . -B build \
-  -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
-  -DVCPKG_TARGET_TRIPLET=x64-linux
-cmake --build build --parallel
-./build/WaterCausticsRendering
+mkdir -p build
+cd build
+cmake ..
+cmake --build . --parallel
+./WaterCausticsRendering
 ```
+
+Avec `VCPKG_ROOT` defini vers une installation de vcpkg, CMake charge automatiquement son toolchain. Si le dossier `build` a deja ete configure sans ce toolchain, utilisez un nouveau dossier de build (par exemple `build-vcpkg`) pour cette premiere configuration.
 
 La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. La fenetre de depart ouvre un contexte OpenGL 3.3 et affiche un fond sombre ; le rendu et la simulation restent a implementer.
 
