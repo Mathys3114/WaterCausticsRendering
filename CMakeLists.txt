@@ -22,6 +22,9 @@ target_compile_features(WaterCausticsRendering PRIVATE cxx_std_17)
 set_target_properties(WaterCausticsRendering PROPERTIES
     CXX_EXTENSIONS OFF
 )
+target_compile_definitions(WaterCausticsRendering PRIVATE
+    WATER_CAUSTICS_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders"
+)
 
 target_link_libraries(WaterCausticsRendering PRIVATE
     glad::glad
