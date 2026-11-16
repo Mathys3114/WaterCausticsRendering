@@ -1,5 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <cstddef>
 #include <cstdlib>
@@ -94,7 +97,7 @@ int main()
 {
     std::string vertexSource;
     std::string fragmentSource;
-    const std::string shaderDirectory = WATER_CAUSTICS_SHADER_DIR;
+    const std::string shaderDirectory = "/shaders";
     if (!loadShaderSource(shaderDirectory + "/quad.vert", vertexSource)
         || !loadShaderSource(shaderDirectory + "/quad.frag", fragmentSource)) {
         return EXIT_FAILURE;
@@ -138,14 +141,32 @@ int main()
         return EXIT_FAILURE;
     }
 
+    const GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
+    const GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
+    const GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
+    if (modelLocation < 0 || viewLocation < 0 || projectionLocation < 0) {
+        std::cerr << "Failed to find a camera matrix uniform in the shader program.\n";
+        glDeleteProgram(shaderProgram);
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return EXIT_FAILURE;
+    }
+
     constexpr float vertices[] = {
-        -0.75F, -0.65F,
-         0.75F, -0.65F,
-         0.75F,  0.65F,
-        -0.75F, -0.65F,
-         0.75F,  0.65F,
-        -0.75F,  0.65F
+        -2.5F, 0.0F, -2.5F,
+        -2.5F, 0.0F,  2.5F,
+         2.5F, 0.0F,  2.5F,
+        -2.5F, 0.0F, -2.5F,
+         2.5F, 0.0F,  2.5F,
+         2.5F, 0.0F, -2.5F
     };
+
+    const glm::mat4 model(1.0F);
+    const glm::mat4 view = glm::lookAt(
+        glm::vec3(0.0F, 4.0F, 6.0F),
+        glm::vec3(0.0F, 0.0F, 0.0F),
+        glm::vec3(0.0F, 1.0F, 0.0F)
+    );
 
     GLuint vertexArray = 0;
     GLuint vertexBuffer = 0;
@@ -154,12 +175,29 @@ int main()
     glBindVertexArray(vertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    glUseProgram(shaderProgram);
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+        if (framebufferWidth > 0 && framebufferHeight > 0) {
+            const float aspectRatio = static_cast<float>(framebufferWidth)
+                / static_cast<float>(framebufferHeight);
+            const glm::mat4 projection = glm::perspective(
+                glm::radians(45.0F),
+                aspectRatio,
+                0.1F,
+                100.0F
+            );
+            glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+        }
+
         glClearColor(0.02F, 0.04F, 0.08F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
