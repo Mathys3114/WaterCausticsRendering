@@ -7,13 +7,13 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float time;
 uniform mat3 normalMatrix;
+uniform float waveAmplitude;
 
 out vec3 worldPosition;
 out vec3 worldNormal;
 
 void main()
 {
-    const float amplitude = 0.18;
     const float wavelength = 2.5;
     const float speed = 0.8;
     const vec2 waveDirection = vec2(0.8, 0.6);
@@ -21,10 +21,10 @@ void main()
 
     float phase = waveNumber * dot(waveDirection, position.xz) - waveNumber * speed * time;
     vec3 displacedPosition = position;
-    displacedPosition.y += amplitude * sin(phase);
+    displacedPosition.y += waveAmplitude * sin(phase);
 
-    float slopeX = amplitude * waveNumber * waveDirection.x * cos(phase);
-    float slopeZ = amplitude * waveNumber * waveDirection.y * cos(phase);
+    float slopeX = waveAmplitude * waveNumber * waveDirection.x * cos(phase);
+    float slopeZ = waveAmplitude * waveNumber * waveDirection.y * cos(phase);
     vec3 objectNormal = normalize(vec3(-slopeX, 1.0, -slopeZ));
 
     vec4 worldPositionHomogeneous = model * vec4(displacedPosition, 1.0);

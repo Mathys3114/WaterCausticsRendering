@@ -54,7 +54,7 @@ cmake --build . --parallel
 
 Avec `VCPKG_ROOT` defini vers une installation de vcpkg, CMake charge automatiquement son toolchain. Si le dossier `build` a deja ete configure sans ce toolchain, utilisez un nouveau dossier de build (par exemple `build-vcpkg`) pour cette premiere configuration.
 
-La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche une vague sinusoidale animee et eclairee sur une grille de 50 x 50 cellules, vue en perspective par une camera fixe ; le calcul des caustiques reste a implementer.
+La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche une vague sinusoidale animee et translucide au-dessus d'un plan de sol, vue en perspective par une camera fixe ; le calcul des caustiques reste a implementer.
 
 ## Dependances
 

@@ -154,6 +154,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     GLFWwindow* window = glfwCreateWindow(1280, 720, "WaterCausticsRendering", nullptr, nullptr);
     if (window == nullptr) {
@@ -191,8 +192,14 @@ int main()
     const GLint normalMatrixLocation = glGetUniformLocation(shaderProgram, "normalMatrix");
     const GLint lightDirectionLocation = glGetUniformLocation(shaderProgram, "lightDirection");
     const GLint cameraPositionLocation = glGetUniformLocation(shaderProgram, "cameraPosition");
+    const GLint waveAmplitudeLocation = glGetUniformLocation(shaderProgram, "waveAmplitude");
+    const GLint surfaceColorLocation = glGetUniformLocation(shaderProgram, "surfaceColor");
+    const GLint surfaceOpacityLocation = glGetUniformLocation(shaderProgram, "surfaceOpacity");
+    const GLint specularStrengthLocation = glGetUniformLocation(shaderProgram, "specularStrength");
     if (modelLocation < 0 || viewLocation < 0 || projectionLocation < 0 || timeLocation < 0
-        || normalMatrixLocation < 0 || lightDirectionLocation < 0 || cameraPositionLocation < 0) {
+        || normalMatrixLocation < 0 || lightDirectionLocation < 0 || cameraPositionLocation < 0
+        || waveAmplitudeLocation < 0 || surfaceColorLocation < 0 || surfaceOpacityLocation < 0
+        || specularStrengthLocation < 0) {
         std::cerr << "Failed to find a required uniform in the shader program.\n";
         glDeleteProgram(shaderProgram);
         glfwDestroyWindow(window);
@@ -201,23 +208,41 @@ int main()
     }
 
     const GridMesh mesh = createFlatGrid();
+    constexpr GLfloat floorVertices[] = {
+        -8.0F, 0.0F, -8.0F,
+        -8.0F, 0.0F,  8.0F,
+         8.0F, 0.0F,  8.0F,
+        -8.0F, 0.0F, -8.0F,
+         8.0F, 0.0F,  8.0F,
+         8.0F, 0.0F, -8.0F
+    };
 
-    const glm::mat4 model(1.0F);
-    const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(model));
-    const glm::vec3 cameraPosition(0.0F, 4.0F, 6.0F);
+    const glm::mat4 waterModel(1.0F);
+    const glm::mat3 waterNormalMatrix = glm::inverseTranspose(glm::mat3(waterModel));
+    const glm::mat4 floorModel = glm::translate(
+        glm::mat4(1.0F),
+        glm::vec3(0.0F, -1.5F, 0.0F)
+    );
+    const glm::mat3 floorNormalMatrix = glm::inverseTranspose(glm::mat3(floorModel));
+    const glm::vec3 cameraPosition(5.0F, 5.0F, 8.0F);
     const glm::vec3 lightDirection = glm::normalize(glm::vec3(-0.4F, 0.3F, 0.3F));
     const glm::mat4 view = glm::lookAt(
         cameraPosition,
-        glm::vec3(0.0F, 0.0F, 0.0F),
+        glm::vec3(0.0F, -0.65F, 0.0F),
         glm::vec3(0.0F, 1.0F, 0.0F)
     );
 
     GLuint vertexArray = 0;
     GLuint vertexBuffer = 0;
     GLuint indexBuffer = 0;
+    GLuint floorVertexArray = 0;
+    GLuint floorVertexBuffer = 0;
     glGenVertexArrays(1, &vertexArray);
     glGenBuffers(1, &vertexBuffer);
     glGenBuffers(1, &indexBuffer);
+    glGenVertexArrays(1, &floorVertexArray);
+    glGenBuffers(1, &floorVertexBuffer);
+
     glBindVertexArray(vertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(
@@ -238,10 +263,20 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    glBindVertexArray(floorVertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, floorVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glUseProgram(shaderProgram);
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, glm::value_ptr(normalMatrix));
     glUniform3fv(lightDirectionLocation, 1, glm::value_ptr(lightDirection));
     glUniform3fv(cameraPositionLocation, 1, glm::value_ptr(cameraPosition));
 
@@ -260,10 +295,26 @@ int main()
         }
 
         glClearColor(0.02F, 0.04F, 0.08F, 1.0F);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
         glUniform1f(timeLocation, static_cast<float>(glfwGetTime()));
+
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(floorModel));
+        glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, glm::value_ptr(floorNormalMatrix));
+        glUniform1f(waveAmplitudeLocation, 0.0F);
+        glUniform3f(surfaceColorLocation, 0.22F, 0.25F, 0.27F);
+        glUniform1f(surfaceOpacityLocation, 1.0F);
+        glUniform1f(specularStrengthLocation, 0.05F);
+        glBindVertexArray(floorVertexArray);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(waterModel));
+        glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, glm::value_ptr(waterNormalMatrix));
+        glUniform1f(waveAmplitudeLocation, 0.18F);
+        glUniform3f(surfaceColorLocation, 0.08F, 0.52F, 0.68F);
+        glUniform1f(surfaceOpacityLocation, 0.72F);
+        glUniform1f(specularStrengthLocation, 0.45F);
         glBindVertexArray(vertexArray);
         glDrawElements(
             GL_TRIANGLES,
@@ -278,7 +329,9 @@ int main()
 
     const GLuint buffers[] = {vertexBuffer, indexBuffer};
     glDeleteBuffers(2, buffers);
-    glDeleteVertexArrays(1, &vertexArray);
+    glDeleteBuffers(1, &floorVertexBuffer);
+    const GLuint vertexArrays[] = {vertexArray, floorVertexArray};
+    glDeleteVertexArrays(2, vertexArrays);
     glDeleteProgram(shaderProgram);
     glfwDestroyWindow(window);
     glfwTerminate();
