@@ -8,8 +8,8 @@ Base de projet pour un rendu de caustiques aquatiques en temps reel avec C++ et 
 assets/                  Ressources (textures, modeles...)
 include/water_caustics/  Interfaces C++ du projet
 shaders/                 Shaders GLSL
-  quad.vert              Vertex shader du plan
-  quad.frag              Fragment shader du plan
+  quad.vert              Vertex shader du plan maillé
+  quad.frag              Fragment shader du plan maillé
 src/
   main.cpp               Point d'entree et boucle de fenetrage
   render/                Rendu et gestion OpenGL
@@ -54,7 +54,7 @@ cmake --build . --parallel
 
 Avec `VCPKG_ROOT` defini vers une installation de vcpkg, CMake charge automatiquement son toolchain. Si le dossier `build` a deja ete configure sans ce toolchain, utilisez un nouveau dossier de build (par exemple `build-vcpkg`) pour cette premiere configuration.
 
-La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche un plan horizontal turquoise vu en perspective par une camera fixe ; les deformations de l'eau et les caustiques restent a implementer.
+La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche une vague sinusoidale animee et eclairee sur une grille de 50 x 50 cellules, vue en perspective par une camera fixe ; le calcul des caustiques reste a implementer.
 
 ## Dependances
 
