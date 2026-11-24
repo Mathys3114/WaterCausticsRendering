@@ -196,10 +196,11 @@ int main()
     const GLint surfaceColorLocation = glGetUniformLocation(shaderProgram, "surfaceColor");
     const GLint surfaceOpacityLocation = glGetUniformLocation(shaderProgram, "surfaceOpacity");
     const GLint specularStrengthLocation = glGetUniformLocation(shaderProgram, "specularStrength");
+    const GLint causticStrengthLocation = glGetUniformLocation(shaderProgram, "causticStrength");
     if (modelLocation < 0 || viewLocation < 0 || projectionLocation < 0 || timeLocation < 0
         || normalMatrixLocation < 0 || lightDirectionLocation < 0 || cameraPositionLocation < 0
         || waveAmplitudeLocation < 0 || surfaceColorLocation < 0 || surfaceOpacityLocation < 0
-        || specularStrengthLocation < 0) {
+        || specularStrengthLocation < 0 || causticStrengthLocation < 0) {
         std::cerr << "Failed to find a required uniform in the shader program.\n";
         glDeleteProgram(shaderProgram);
         glfwDestroyWindow(window);
@@ -306,6 +307,7 @@ int main()
         glUniform3f(surfaceColorLocation, 0.22F, 0.25F, 0.27F);
         glUniform1f(surfaceOpacityLocation, 1.0F);
         glUniform1f(specularStrengthLocation, 0.05F);
+        glUniform1f(causticStrengthLocation, 1.0F);
         glBindVertexArray(floorVertexArray);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -315,6 +317,7 @@ int main()
         glUniform3f(surfaceColorLocation, 0.08F, 0.52F, 0.68F);
         glUniform1f(surfaceOpacityLocation, 0.72F);
         glUniform1f(specularStrengthLocation, 0.45F);
+        glUniform1f(causticStrengthLocation, 0.0F);
         glBindVertexArray(vertexArray);
         glDrawElements(
             GL_TRIANGLES,
