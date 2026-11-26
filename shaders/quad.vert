@@ -12,20 +12,15 @@ uniform float waveAmplitude;
 out vec3 worldPosition;
 out vec3 worldNormal;
 
+#include "wave.glsl"
+
 void main()
 {
-    const float wavelength = 2.5;
-    const float speed = 0.8;
-    const vec2 waveDirection = vec2(0.8, 0.6);
-    const float waveNumber = 6.2831853 / wavelength;
-
-    float phase = waveNumber * dot(waveDirection, position.xz) - waveNumber * speed * time;
+    WaveSample wave = evaluateWave(position.xz, time, waveAmplitude);
     vec3 displacedPosition = position;
-    displacedPosition.y += waveAmplitude * sin(phase);
+    displacedPosition.y += wave.height;
 
-    float slopeX = waveAmplitude * waveNumber * waveDirection.x * cos(phase);
-    float slopeZ = waveAmplitude * waveNumber * waveDirection.y * cos(phase);
-    vec3 objectNormal = normalize(vec3(-slopeX, 1.0, -slopeZ));
+    vec3 objectNormal = normalize(vec3(-wave.heightGradient.x, 1.0, -wave.heightGradient.y));
 
     vec4 worldPositionHomogeneous = model * vec4(displacedPosition, 1.0);
     worldPosition = worldPositionHomogeneous.xyz;

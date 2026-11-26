@@ -54,7 +54,7 @@ cmake --build . --parallel
 
 Avec `VCPKG_ROOT` defini vers une installation de vcpkg, CMake charge automatiquement son toolchain. Si le dossier `build` a deja ete configure sans ce toolchain, utilisez un nouveau dossier de build (par exemple `build-vcpkg`) pour cette premiere configuration.
 
-La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche une vague sinusoidale animee et translucide au-dessus d'un plan de sol, vue en perspective par une camera fixe. Un premier motif de caustiques procedeural, statique et independant des vagues est applique au sol sous l'emprise de l'eau ; il sert d'approximation visuelle et ne simule pas encore la refraction physique de la lumiere.
+La premiere configuration telecharge et construit les dependances declarees dans `vcpkg.json` et necessite une connexion Internet. L'application affiche une vague sinusoidale animee et translucide au-dessus d'un plan de sol, vue en perspective par une camera fixe. Une passe de rendu refracte les rayons lumineux sur la vague et accumule leurs impacts dans une texture de caustiques dynamique, ensuite echantillonnee par le sol. Cette premiere implementation ne traite qu'un plan horizontal fixe ; les ombres des objets au-dessus ou sous l'eau et les autres recepteurs ne sont pas encore pris en compte.
 
 ## Dependances
 
